@@ -1,7 +1,7 @@
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '../../utils/formatters'
 
-const TrendLineChart = ({ data }) => {
+const TrendLineChart = ({ data, currency = 'INR' }) => {
   return (
     <div className="h-[340px] rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
       <div className="mb-2 flex items-center justify-between">
@@ -29,7 +29,7 @@ const TrendLineChart = ({ data }) => {
             tickLine={false}
             tickFormatter={(value) => `₹${Math.round(value / 1000)}k`}
           />
-          <Tooltip formatter={(value) => formatCurrency(value)} />
+          <Tooltip formatter={(value) => formatCurrency(value, currency)} />
           <Line
             type="monotone"
             dataKey="amount"

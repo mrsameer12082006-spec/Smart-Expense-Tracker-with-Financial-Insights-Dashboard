@@ -1,11 +1,9 @@
 import {
   CircleUserRound,
-  Grid2x2,
   LayoutDashboard,
   ListPlus,
   ReceiptText,
   Settings,
-  Shapes,
   Wallet,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
@@ -18,15 +16,13 @@ const links = [
   { to: '/expenses', label: 'Expenses', icon: ReceiptText, active: true },
   { to: '/expenses', label: 'Add Expense', icon: ListPlus, active: true },
   { to: '/budget', label: 'Budget', icon: Wallet, active: true },
-  { to: '#', label: 'Reports', icon: Grid2x2, active: false },
-  { to: '#', label: 'Categories', icon: Shapes, active: false },
   { to: '/settings', label: 'Settings', icon: Settings, active: true },
-  { to: '#', label: 'Profile', icon: CircleUserRound, active: false },
 ]
 
 const Sidebar = () => {
   const currentUser = useSelector((state) => state.auth.currentUser)
   const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const currency = useSelector((state) => state.settings.currency)
   const expenses = useSelector((state) => state.expenses.items)
 
   const now = new Date()
@@ -91,14 +87,14 @@ const Sidebar = () => {
         <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/80">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Current Budget</p>
           <p className="mt-1 text-2xl font-semibold text-slate-800 dark:text-slate-100">
-            {formatCurrency(monthlyBudget)}
+            {formatCurrency(monthlyBudget, currency)}
           </p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <div className="h-full rounded-full bg-emerald-500" style={{ width: `${usedPercent}%` }} />
           </div>
           <div className="mt-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{usedPercent}% Used</span>
-            <span>{formatCurrency(budgetLeft)} Left</span>
+            <span>{formatCurrency(budgetLeft, currency)} Left</span>
           </div>
         </div>
 

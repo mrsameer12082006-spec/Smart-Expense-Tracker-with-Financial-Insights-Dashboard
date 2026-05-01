@@ -21,6 +21,7 @@ import { formatCurrency } from '../utils/formatters'
 const BudgetPage = () => {
   const expenses = useSelector((state) => state.expenses.items)
   const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const currency = useSelector((state) => state.settings.currency)
 
   const {
     currentMonthTotal,
@@ -116,28 +117,28 @@ const BudgetPage = () => {
           icon={Wallet}
           tone="indigo"
           title="Total Budget"
-          value={formatCurrency(monthlyBudget)}
+          value={formatCurrency(monthlyBudget, currency)}
           subtitle="Monthly Budget"
         />
         <MetricCard
           icon={TrendingDown}
           tone="green"
           title="Total Spent"
-          value={formatCurrency(currentMonthTotal)}
+          value={formatCurrency(currentMonthTotal, currency)}
           subtitle={`${Math.round(usedPercent)}% of Budget`}
         />
         <MetricCard
           icon={PiggyBank}
           tone="amber"
           title="Amount Left"
-          value={formatCurrency(amountLeft)}
+          value={formatCurrency(amountLeft, currency)}
           subtitle={`${Math.round(amountLeftPercent)}% of Budget`}
         />
         <MetricCard
           icon={BarChart3}
           tone="rose"
           title="Daily Average Spent"
-          value={formatCurrency(dailyAverage)}
+          value={formatCurrency(dailyAverage, currency)}
           subtitle="This Month"
         />
       </div>
@@ -149,7 +150,7 @@ const BudgetPage = () => {
               <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-rose-600 dark:text-rose-300" />
               <p className="text-sm text-rose-700 dark:text-rose-200">
                 You have exceeded your <strong>{category.category}</strong> budget by{' '}
-                <strong>{formatCurrency(category.spent - category.budget)}</strong>.
+                <strong>{formatCurrency(category.spent - category.budget, currency)}</strong>.
               </p>
             </div>
           ))}
@@ -158,48 +159,108 @@ const BudgetPage = () => {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-          <h3 className="mb-4 text-lg font-semibold">Budget Overview</h3>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="h-56 w-full md:w-1/2">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Budget Overview</h3>
+            <button
+              type="button"
+              className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            >
+              May 2026
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-center">
+              <div className="relative" style={{ width: '200px', height: '200px' }}>
+                <PieChart width={200} height={200}>
                   <Pie
                     data={pieData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={60}
-                    outerRadius={85}
-                    paddingAngle={1}
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
                     stroke="none"
+                    cx="50%"
+                    cy="50%"
                   >
                     <Cell fill="#10b981" />
-                    <Cell fill="#d1d5db" />
+                    <Cell fill="#cbd5e1" />
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
                 </PieChart>
-              </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {Math.round(usedPercent)}%
+                  </p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Used</p>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2 md:w-1/2">
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Spent</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  {formatCurrency(currentMonthTotal)}
+            <div className="space-y-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Spent</p>
+                </div>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  {formatCurrency(currentMonthTotal, currency)}
                 </p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Left</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  {formatCurrency(amountLeft)}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-slate-300 dark:bg-slate-600" />
+                  <p className="text-sm text-slate-600 dark:text-slate-300">Left</p>
+                </div>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  {formatCurrency(amountLeft, currency)}
                 </p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Budget</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  {formatCurrency(monthlyBudget)}
+              <div className="flex items-center justify-between border-t border-slate-200 pt-2 dark:border-slate-800">
+                <p className="text-sm text-slate-600 dark:text-slate-300">Total Budget</p>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  {formatCurrency(monthlyBudget, currency)}
                 </p>
               </div>
             </div>
+
+            {usedPercent <= 100 ? (
+              <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20">
+                <div className="flex gap-2">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
+                      <svg className="h-3 w-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                      Great! You're within your budget.
+                    </p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                      Keep it up and try to save more this month.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-900/20">
+                <div className="flex gap-2">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-rose-800 dark:text-rose-200">
+                      Budget exceeded!
+                    </p>
+                    <p className="text-xs text-rose-700 dark:text-rose-300">
+                      You've spent {formatCurrency(currentMonthTotal - monthlyBudget)} over your budget.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </article>
 
@@ -228,7 +289,7 @@ const BudgetPage = () => {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip formatter={(value) => formatCurrency(value, currency)} />
               <Legend />
               <Bar dataKey="Budget" fill="#6366f1" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Actual" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -267,10 +328,10 @@ const BudgetPage = () => {
                     {cb.category}
                   </td>
                   <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
-                    {formatCurrency(cb.budget)}
+                    {formatCurrency(cb.budget, currency)}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-slate-900 dark:text-slate-100">
-                    {formatCurrency(cb.spent)}
+                    {formatCurrency(cb.spent, currency)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="space-y-1">
@@ -320,7 +381,7 @@ const BudgetPage = () => {
               tickLine={false}
               tickFormatter={(value) => `₹${Math.round(value / 1000)}k`}
             />
-            <Tooltip formatter={(value) => formatCurrency(value)} />
+            <Tooltip formatter={(value) => formatCurrency(value, currency)} />
             <Line
               type="monotone"
               dataKey="amount"

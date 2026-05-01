@@ -11,6 +11,7 @@ import { formatCurrency, formatDate } from '../utils/formatters'
 const DashboardPage = () => {
   const expenses = useSelector((state) => state.expenses.items)
   const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const currency = useSelector((state) => state.settings.currency)
   const currentUser = useSelector((state) => state.auth.currentUser)
 
   const {
@@ -114,8 +115,8 @@ const DashboardPage = () => {
     `Your top category this month is ${topCategory}.`,
     monthComparison,
     budgetRemaining < 0
-      ? `You are over budget by ${formatCurrency(Math.abs(budgetRemaining))}.`
-      : `You still have ${formatCurrency(budgetRemaining)} available in your budget.`,
+      ? `You are over budget by ${formatCurrency(Math.abs(budgetRemaining), currency)}.`
+      : `You still have ${formatCurrency(budgetRemaining, currency)} available in your budget.`,
   ]
 
   return (
@@ -142,7 +143,7 @@ const DashboardPage = () => {
       <div className="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
         <StatCard
           label="Total Expenses"
-          value={formatCurrency(monthlyTotal)}
+          value={formatCurrency(monthlyTotal, currency)}
           hint={`from ${monthlyLabel}`}
           trend="12.5% up"
           icon={Wallet}
@@ -150,7 +151,7 @@ const DashboardPage = () => {
         />
         <StatCard
           label="Total Income"
-          value={formatCurrency(totalIncome)}
+          value={formatCurrency(totalIncome, currency)}
           hint="Configured monthly budget"
           trend="8.3% up"
           icon={TrendingUp}
@@ -158,7 +159,7 @@ const DashboardPage = () => {
         />
         <StatCard
           label="Total Savings"
-          value={formatCurrency(totalSavings)}
+          value={formatCurrency(totalSavings, currency)}
           hint={budgetRemaining < 0 ? 'Negative savings this month' : 'Projected monthly savings'}
           trend="5.7% up"
           icon={PiggyBank}
@@ -166,7 +167,7 @@ const DashboardPage = () => {
         />
         <StatCard
           label="Monthly Budget"
-          value={formatCurrency(monthlyBudget)}
+          value={formatCurrency(monthlyBudget, currency)}
           progress={budgetUsedPercent}
           progressLabel={`${Math.round(budgetUsedPercent)}% used`}
           icon={CalendarDays}
@@ -176,7 +177,7 @@ const DashboardPage = () => {
 
       <div className="grid gap-4 xl:grid-cols-2">
         {trendData.length ? (
-          <TrendLineChart data={trendData} />
+          <TrendLineChart data={trendData} currency={currency} />
         ) : (
           <EmptyState
             title="No trend data"
@@ -185,7 +186,7 @@ const DashboardPage = () => {
         )}
 
         {pieData.length ? (
-          <CategoryPieChart data={pieData} rows={categoryRows} />
+          <CategoryPieChart data={pieData} rows={categoryRows} currency={currency} />
         ) : (
           <EmptyState
             title="No category data"
@@ -216,7 +217,7 @@ const DashboardPage = () => {
 
                 <div className="text-right">
                   <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-                    -{formatCurrency(expense.amount)}
+                    -{formatCurrency(expense.amount, currency)}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(expense.date)}</p>
                 </div>

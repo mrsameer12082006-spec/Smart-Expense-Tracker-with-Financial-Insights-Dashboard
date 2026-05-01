@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../../utils/constants'
 
 const defaultFormState = {
@@ -11,6 +12,7 @@ const defaultFormState = {
 }
 
 const ExpenseModal = ({ open, onClose, onSave, initialExpense }) => {
+  const currency = useSelector((state) => state.settings.currency)
   const [form, setForm] = useState(defaultFormState)
   const [error, setError] = useState('')
 
@@ -87,7 +89,7 @@ const ExpenseModal = ({ open, onClose, onSave, initialExpense }) => {
           </label>
 
           <label className="text-sm">
-            Amount
+            Amount ({currency})
             <input
               type="number"
               step="0.01"

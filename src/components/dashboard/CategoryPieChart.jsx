@@ -3,7 +3,7 @@ import { formatCurrency } from '../../utils/formatters'
 
 const COLORS = ['#6366f1', '#22c55e', '#eab308', '#f97316', '#ef4444', '#0ea5e9', '#8b5cf6', '#14b8a6']
 
-const CategoryPieChart = ({ data, rows = [] }) => {
+const CategoryPieChart = ({ data, rows = [], currency = 'INR' }) => {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
       <h3 className="mb-4 text-lg font-semibold">Expenses by Category</h3>
@@ -25,7 +25,7 @@ const CategoryPieChart = ({ data, rows = [] }) => {
                   <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip formatter={(value) => formatCurrency(value, currency)} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -42,7 +42,7 @@ const CategoryPieChart = ({ data, rows = [] }) => {
               </span>
               <span className="w-12 text-right text-slate-500 dark:text-slate-400">{row.percent}%</span>
               <span className="w-24 text-right font-medium text-slate-700 dark:text-slate-100">
-                {formatCurrency(row.value)}
+                {formatCurrency(row.value, currency)}
               </span>
             </li>
           ))}
