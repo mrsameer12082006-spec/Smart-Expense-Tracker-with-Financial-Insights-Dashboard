@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
 
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage'))
@@ -26,18 +27,19 @@ function App() {
       }
     >
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/expenses" element={<ExpensesPage />} />
             <Route path="/budget" element={<BudgetPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   )

@@ -33,6 +33,7 @@ const SettingsPage = () => {
     name: currentUser?.name || '',
     email: currentUser?.email || '',
     phone: currentUser?.phone || '',
+    gender: currentUser?.gender || '',
     bio: currentUser?.bio || '',
   })
 
@@ -280,6 +281,21 @@ const SettingsPage = () => {
                     className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
                     placeholder="Enter your phone number"
                   />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Gender</label>
+                  <select
+                    name="gender"
+                    value={profileForm.gender}
+                    onChange={handleProfileChange}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Bio</label>
