@@ -23,7 +23,7 @@ import ExpenseModal from '../components/expenses/ExpenseModal'
 import EmptyState from '../components/common/EmptyState'
 import { addExpense, deleteExpense, updateExpense } from '../redux/slices/expensesSlice'
 import { EXPENSE_CATEGORIES, PAGE_SIZE, PAYMENT_METHODS } from '../utils/constants'
-import { formatCurrency, formatDate } from '../utils/formatters'
+import { formatCurrency, formatDate, convertCurrency } from '../utils/formatters'
 import { useDebounce } from '../hooks/useDebounce'
 import { exportExpensesToCSV } from '../services/exportService'
 
@@ -67,6 +67,8 @@ const ExpensesPage = () => {
   const dispatch = useDispatch()
   const expenses = useSelector((state) => state.expenses.items)
   const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const monthlyIncome = useSelector((state) => state.settings.monthlyIncome)
+  const currency = useSelector((state) => state.settings.currency)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState(null)
@@ -146,7 +148,7 @@ const ExpensesPage = () => {
     }
   }, [expenses])
 
-  const totalIncome = Number(monthlyBudget)
+  const totalIncome = Number(monthlyIncome)
   const totalSavings = Math.max(0, totalIncome - currentMonthTotal)
 
   const totalPages = Math.ceil(filteredExpenses.length / pageSize)
@@ -184,10 +186,25 @@ const ExpensesPage = () => {
   }
 
   const handleSaveExpense = (payload) => {
-    if (selectedExpense) {
-      dispatch(updateExpense({ id: selectedExpense.id, updatedValues: payload }))
-    } else {
-      dispatch(addExpense(payload))
+    // payload.amount is in the currently selected display currency.
+    // Convert back to INR for consistent storage (app stores amounts in INR).
+    try {
+      const { convertCurrency } = require('../utils/formatters')
+      const amountInINR = convertCurrency(payload.amount, currency, 'INR')
+      const storedPayload = { ...payload, amount: Number(amountInINR) }
+
+      if (selectedExpense) {
+        dispatch(updateExpense({ id: selectedExpense.id, updatedValues: storedPayload }))
+      } else {
+        dispatch(addExpense(storedPayload))
+      }
+    } catch (e) {
+      // fallback: store raw number
+      if (selectedExpense) {
+        dispatch(updateExpense({ id: selectedExpense.id, updatedValues: payload }))
+      } else {
+        dispatch(addExpense(payload))
+      }
     }
 
     setModalOpen(false)

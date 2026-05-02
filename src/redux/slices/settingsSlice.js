@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   monthlyBudget: 2000,
+  monthlyIncome: 5000,
   theme: 'light',
   currency: 'INR',
 }
@@ -12,6 +13,9 @@ const settingsSlice = createSlice({
   reducers: {
     setMonthlyBudget: (state, action) => {
       state.monthlyBudget = Number(action.payload) || 0
+    },
+    setMonthlyIncome: (state, action) => {
+      state.monthlyIncome = Number(action.payload) || 0
     },
     toggleTheme: (state) => {
       state.theme = state.theme === 'light' ? 'dark' : 'light'
@@ -28,6 +32,6 @@ const settingsSlice = createSlice({
   },
 })
 
-export const { setMonthlyBudget, toggleTheme, setTheme, setCurrency, hydrateSettings } =
+export const { setMonthlyBudget, setMonthlyIncome, toggleTheme, setTheme, setCurrency, hydrateSettings } =
   settingsSlice.actions
 export default settingsSlice.reducer

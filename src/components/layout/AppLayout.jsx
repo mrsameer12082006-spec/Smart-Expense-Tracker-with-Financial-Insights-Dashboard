@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { Bell, LogOut, Search } from 'lucide-react'
+import { LogOut, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import { logout } from '../../redux/slices/authSlice'
@@ -34,15 +34,6 @@ const AppLayout = () => {
             </label>
 
             <div className="flex items-center gap-2 self-end sm:self-auto">
-              <button
-                type="button"
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                aria-label="Notifications"
-              >
-                <Bell size={16} />
-                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500" />
-              </button>
-
               <button
                 type="button"
                 onClick={handleLogout}

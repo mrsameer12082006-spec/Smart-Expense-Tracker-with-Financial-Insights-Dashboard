@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../../utils/constants'
+import { convertCurrency } from '../../utils/formatters'
 
 const defaultFormState = {
   title: '',
@@ -20,7 +21,8 @@ const ExpenseModal = ({ open, onClose, onSave, initialExpense }) => {
     if (initialExpense) {
       setForm({
         title: initialExpense.title || '',
-        amount: initialExpense.amount,
+        // convert stored INR amount to current display currency
+        amount: convertCurrency(initialExpense.amount, 'INR', currency),
         category: initialExpense.category,
         paymentMethod: initialExpense.paymentMethod || 'UPI',
         date: initialExpense.date,
@@ -30,7 +32,7 @@ const ExpenseModal = ({ open, onClose, onSave, initialExpense }) => {
       setForm(defaultFormState)
     }
     setError('')
-  }, [initialExpense, open])
+  }, [initialExpense, open, currency])
 
   if (!open) return null
 

@@ -20,9 +20,32 @@ const authSlice = createSlice({
         return
       }
 
-      const newUser = { id: crypto.randomUUID(), name, email, password }
+      const newUser = {
+        id: crypto.randomUUID(),
+        name,
+        email,
+        password,
+        username: name.toLowerCase().replace(/\s+/g, '_'),
+        phone: '',
+        location: '',
+        occupation: '',
+        dateOfBirth: '',
+        bio: '',
+        gender: '',
+      }
       state.users.push(newUser)
-      state.currentUser = { id: newUser.id, name, email }
+      state.currentUser = {
+        id: newUser.id,
+        name,
+        email,
+        username: newUser.username,
+        phone: newUser.phone,
+        location: newUser.location,
+        occupation: newUser.occupation,
+        dateOfBirth: newUser.dateOfBirth,
+        bio: newUser.bio,
+        gender: newUser.gender,
+      }
       state.isAuthenticated = true
       state.error = null
     },
@@ -42,6 +65,13 @@ const authSlice = createSlice({
         id: foundUser.id,
         name: foundUser.name,
         email: foundUser.email,
+        username: foundUser.username,
+        phone: foundUser.phone,
+        location: foundUser.location,
+        occupation: foundUser.occupation,
+        dateOfBirth: foundUser.dateOfBirth,
+        bio: foundUser.bio,
+        gender: foundUser.gender,
       }
       state.isAuthenticated = true
       state.error = null
@@ -57,8 +87,17 @@ const authSlice = createSlice({
     hydrateAuth: (state, action) => {
       return { ...state, ...action.payload }
     },
+    updateProfile: (state, action) => {
+      if (state.currentUser) {
+        state.currentUser = { ...state.currentUser, ...action.payload }
+        const userIndex = state.users.findIndex((u) => u.id === state.currentUser.id)
+        if (userIndex !== -1) {
+          state.users[userIndex] = { ...state.users[userIndex], ...action.payload }
+        }
+      }
+    },
   },
 })
 
-export const { signup, login, logout, clearAuthError, hydrateAuth } = authSlice.actions
+export const { signup, login, logout, clearAuthError, hydrateAuth, updateProfile } = authSlice.actions
 export default authSlice.reducer

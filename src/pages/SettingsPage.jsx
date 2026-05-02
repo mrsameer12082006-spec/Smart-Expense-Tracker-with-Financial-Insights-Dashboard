@@ -3,47 +3,121 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   Settings as SettingsIcon,
   User,
-  Lock,
-  Bell,
-  Palette,
-  CreditCard,
   Download,
   Info,
   Sun,
   Moon,
-  Monitor,
+  FileJson,
+  FileText,
+  File,
+  Trash2,
+  Copy,
 } from 'lucide-react'
-import { setTheme, setCurrency } from '../redux/slices/settingsSlice'
+import { setMonthlyBudget, setMonthlyIncome, setTheme } from '../redux/slices/settingsSlice'
+import { updateProfile } from '../redux/slices/authSlice'
+import { clearExpenses } from '../redux/slices/expensesSlice'
+import { exportExpensesToCSV } from '../services/exportService'
 
 const SettingsPage = () => {
   const dispatch = useDispatch()
   const [activeTab, setActiveTab] = useState('general')
+  const [budgetInput, setBudgetInput] = useState('')
+  const [incomeInput, setIncomeInput] = useState('')
   const theme = useSelector((state) => state.settings.theme)
-  const currency = useSelector((state) => state.settings.currency)
-  const [budgetAlerts, setBudgetAlerts] = useState(true)
-  const [autoBackup, setAutoBackup] = useState(true)
-  const [accentColor, setAccentColor] = useState('indigo')
-  const [dateFormat, setDateFormat] = useState('DD/MMM/YYYY')
-  const [timeFormat, setTimeFormat] = useState('12')
+  const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const monthlyIncome = useSelector((state) => state.settings.monthlyIncome)
+  const currentUser = useSelector((state) => state.auth.currentUser)
+  const expenses = useSelector((state) => state.expenses.items)
+  
+  const [profileForm, setProfileForm] = useState({
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
+    bio: currentUser?.bio || '',
+  })
+
+  const handleBudgetChange = (e) => {
+    const value = e.target.value
+    setBudgetInput(value)
+    if (value === '' || value === '0') {
+      dispatch(setMonthlyBudget(''))
+    } else {
+      dispatch(setMonthlyBudget(value))
+    }
+  }
+
+  const handleIncomeChange = (e) => {
+    const value = e.target.value
+    setIncomeInput(value)
+    if (value === '' || value === '0') {
+      dispatch(setMonthlyIncome(''))
+    } else {
+      dispatch(setMonthlyIncome(value))
+    }
+  }
+
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target
+    setProfileForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSaveProfile = () => {
+    dispatch(updateProfile(profileForm))
+    alert('Profile updated successfully!')
+  }
+
+  const handleExportCSV = () => {
+    exportExpensesToCSV(expenses)
+    alert('Expenses exported to CSV!')
+  }
+
+  const handleExportJSON = () => {
+    const dataStr = JSON.stringify(expenses, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `expenses-backup-${Date.now()}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    alert('Expenses exported to JSON!')
+  }
+
+  const handleExportExcel = () => {
+    alert('Excel export coming soon!')
+  }
+
+  const handleExportPDF = () => {
+    alert('PDF export coming soon!')
+  }
+
+  const handleCreateBackup = () => {
+    const backup = {
+      expenses,
+      monthlyBudget,
+      monthlyIncome,
+      profile: profileForm,
+      timestamp: new Date().toISOString(),
+    }
+    localStorage.setItem('expenseTrackerBackup', JSON.stringify(backup))
+    alert('Backup created successfully!')
+  }
+
+  const handleClearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+      dispatch(clearExpenses())
+      alert('All data cleared!')
+    }
+  }
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon, description: 'Basic app preferences' },
     { id: 'profile', label: 'Profile', icon: User, description: 'Manage your profile' },
-    { id: 'security', label: 'Security', icon: Lock, description: 'Password and security' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Manage notifications' },
-    { id: 'categories', label: 'Categories', icon: Palette, description: 'Manage expense categories' },
-    { id: 'payment', label: 'Payment Methods', icon: CreditCard, description: 'Manage payment methods' },
     { id: 'data', label: 'Data & Export', icon: Download, description: 'Export or clear your data' },
     { id: 'about', label: 'About', icon: Info, description: 'App information' },
-  ]
-
-  const accentColors = [
-    { name: 'indigo', hex: '#818cf8', key: 'indigo' },
-    { name: 'blue', hex: '#3b82f6', key: 'blue' },
-    { name: 'emerald', hex: '#10b981', key: 'emerald' },
-    { name: 'orange', hex: '#f97316', key: 'orange' },
-    { name: 'pink', hex: '#ec4899', key: 'pink' },
-    { name: 'purple', hex: '#a855f7', key: 'purple' },
   ]
 
   return (
@@ -82,199 +156,78 @@ const SettingsPage = () => {
       <div className="flex-1">
         {activeTab === 'general' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold">Settings</h2>
-              <p className="text-slate-500 dark:text-slate-400">
-                Manage your preferences and account settings
-              </p>
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold">Settings</h2>
+                <p className="text-slate-500 dark:text-slate-400">
+                  Manage your preferences and account settings
+                </p>
+              </div>
+              <button
+                onClick={() => dispatch(setTheme(theme === 'light' ? 'dark' : 'light'))}
+                className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 transition ${
+                  theme === 'light'
+                    ? 'border-yellow-400 bg-yellow-50 text-yellow-700 dark:border-slate-700 dark:bg-slate-800'
+                    : 'border-slate-200 dark:border-indigo-500 dark:bg-indigo-900/20'
+                }`}
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Sun size={16} />
+                    <span className="text-sm font-medium">Light</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon size={16} />
+                    <span className="text-sm font-medium">Dark</span>
+                  </>
+                )}
+              </button>
             </div>
 
-            {/* Appearance */}
+            {/* Financial Settings */}
             <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
-              <h3 className="text-lg font-semibold">Appearance</h3>
+              <h3 className="text-lg font-semibold">Financial Settings</h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Customize the look and feel of the application
+                Configure your monthly budget and income
               </p>
 
-              <div className="mt-6 space-y-6">
-                {/* Theme */}
-                <div className="border-b border-slate-200 pb-6 dark:border-slate-800">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Theme</p>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Choose your preferred theme
-                  </p>
-                  <div className="mt-3 flex gap-3">
-                    {[
-                      { value: 'light', label: 'Light', icon: Sun },
-                      { value: 'dark', label: 'Dark', icon: Moon },
-                      { value: 'system', label: 'System', icon: Monitor },
-                    ].map((opt) => {
-                      const Icon = opt.icon
-                      return (
-                        <button
-                          key={opt.value}
-                          onClick={() => dispatch(setTheme(opt.value))}
-                          className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2 transition ${
-                            theme === opt.value
-                              ? 'border-indigo-500 bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-900/20'
-                              : 'border-slate-200 dark:border-slate-700'
-                          }`}
-                        >
-                          <Icon size={16} />
-                          <span className="text-sm font-medium">{opt.label}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Accent Color */}
-                <div>
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Accent Color
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Choose your preferred accent color
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    {accentColors.map((color) => (
-                      <button
-                        key={color.key}
-                        onClick={() => setAccentColor(color.key)}
-                        className={`h-10 w-10 rounded-lg ring-2 ring-offset-2 transition ${
-                          accentColor === color.key
-                            ? 'ring-slate-400 dark:ring-slate-500'
-                            : 'ring-transparent'
-                        }`}
-                        style={{
-                          backgroundColor: color.hex,
-                          boxShadow: accentColor === color.key ? `0 0 0 1px ${color.hex}` : 'none',
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            {/* Currency & Region */}
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
-              <h3 className="text-lg font-semibold">Currency & Region</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Manage your currency and regional settings
-              </p>
-
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Currency
+                    Monthly Budget
                   </label>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Select your default currency
+                    Set your monthly spending limit
                   </p>
-                  <select
-                    value={currency}
-                    onChange={(e) => dispatch(setCurrency(e.target.value))}
-                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                  >
-                    <option value="INR">Indian Rupee (₹)</option>
-                    <option value="USD">US Dollar ($)</option>
-                    <option value="EUR">Euro (€)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Date Format
-                  </label>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Choose your preferred date format
-                  </p>
-                  <select
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                  >
-                    <option value="DD/MMM/YYYY">DD/MMM/YYYY</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Time Format
-                  </label>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Choose your preferred time format
-                  </p>
-                  <select
-                    value={timeFormat}
-                    onChange={(e) => setTimeFormat(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                  >
-                    <option value="12">12 Hour (AM/PM)</option>
-                    <option value="24">24 Hour</option>
-                  </select>
-                </div>
-              </div>
-            </article>
-
-
-
-            {/* Other Preferences */}
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
-              <h3 className="text-lg font-semibold">Other Preferences</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Other application preferences
-              </p>
-
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Enable Budget Alerts
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Get notified when you are close to your budget limit
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setBudgetAlerts(!budgetAlerts)}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
-                      budgetAlerts ? 'bg-indigo-600' : 'bg-slate-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
-                        budgetAlerts ? 'translate-x-7' : 'translate-x-1'
-                      }`}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-lg font-medium text-slate-600 dark:text-slate-300">₹</span>
+                    <input
+                      type="number"
+                      value={monthlyBudget || ''}
+                      onChange={handleBudgetChange}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                      placeholder="Enter monthly budget"
                     />
-                  </button>
+                  </div>
                 </div>
 
-                <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Auto Backup (Local)
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        Automatically backup your data in browser storage
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setAutoBackup(!autoBackup)}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
-                        autoBackup ? 'bg-indigo-600' : 'bg-slate-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
-                          autoBackup ? 'translate-x-7' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Monthly Income
+                  </label>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Set your monthly income
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-lg font-medium text-slate-600 dark:text-slate-300">₹</span>
+                    <input
+                      type="number"
+                      value={monthlyIncome || ''}
+                      onChange={handleIncomeChange}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                      placeholder="Enter monthly income"
+                    />
                   </div>
                 </div>
               </div>
@@ -282,8 +235,225 @@ const SettingsPage = () => {
           </div>
         )}
 
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold">Profile</h2>
+              <p className="text-slate-500 dark:text-slate-400">
+                Manage your personal information
+              </p>
+            </div>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">Personal Information</h3>
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={profileForm.name}
+                    onChange={handleProfileChange}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={profileForm.email}
+                    onChange={handleProfileChange}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    placeholder="Enter your email"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={profileForm.phone}
+                    onChange={handleProfileChange}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Bio</label>
+                  <textarea
+                    name="bio"
+                    value={profileForm.bio}
+                    onChange={handleProfileChange}
+                    maxLength={150}
+                    rows={4}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    placeholder="Tell us about yourself"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">{profileForm.bio.length} / 150</p>
+                </div>
+              </div>
+              <button
+                onClick={handleSaveProfile}
+                className="mt-6 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              >
+                Save Profile
+              </button>
+            </article>
+          </div>
+        )}
+
+        {/* Data & Export Tab */}
+        {activeTab === 'data' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold">Data & Export</h2>
+              <p className="text-slate-500 dark:text-slate-400">
+                Export your data or manage your account data
+              </p>
+            </div>
+
+            {/* Export Options */}
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">Export Your Data</h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Download your expenses in different formats
+              </p>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-3 rounded-lg border-2 border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+                >
+                  <FileText className="text-green-600" size={24} />
+                  <div className="text-left">
+                    <p className="font-medium">Export as CSV</p>
+                    <p className="text-xs text-slate-500">Download in CSV format</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleExportJSON}
+                  className="flex items-center gap-3 rounded-lg border-2 border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+                >
+                  <FileJson className="text-blue-600" size={24} />
+                  <div className="text-left">
+                    <p className="font-medium">Export as JSON</p>
+                    <p className="text-xs text-slate-500">Download in JSON format</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-3 rounded-lg border-2 border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+                >
+                  <File className="text-green-700" size={24} />
+                  <div className="text-left">
+                    <p className="font-medium">Export as Excel</p>
+                    <p className="text-xs text-slate-500">Download in Excel format</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-3 rounded-lg border-2 border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900"
+                >
+                  <FileText className="text-red-600" size={24} />
+                  <div className="text-left">
+                    <p className="font-medium">Export as PDF</p>
+                    <p className="text-xs text-slate-500">Download in PDF format</p>
+                  </div>
+                </button>
+              </div>
+            </article>
+
+            {/* Backup & Clear */}
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">Backup & Clear</h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Create backups or clear all your data
+              </p>
+
+              <div className="mt-6 space-y-3">
+                <button
+                  onClick={handleCreateBackup}
+                  className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2"
+                >
+                  <Copy size={16} />
+                  Create Backup
+                </button>
+                <button
+                  onClick={handleClearAllData}
+                  className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Clear All Data
+                </button>
+              </div>
+            </article>
+          </div>
+        )}
+
+        {/* About Tab */}
+        {activeTab === 'about' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold">About ExpenseTracker</h2>
+              <p className="text-slate-500 dark:text-slate-400">
+                Learn more about our application
+              </p>
+            </div>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">App Information</h3>
+              <div className="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                <p><span className="font-medium">Version:</span> 1.0.0</p>
+                <p><span className="font-medium">Release Date:</span> May 2026</p>
+                <p><span className="font-medium">Platform:</span> Web Application</p>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">About ExpenseTracker</h3>
+              <div className="mt-4 space-y-4 text-slate-600 dark:text-slate-300">
+                <p>
+                  ExpenseTracker is a powerful and intuitive expense management application designed to help you take control of your finances. Whether you're managing personal expenses or tracking a household budget, our app provides the tools you need.
+                </p>
+                <p>
+                  <span className="font-medium">Key Features:</span>
+                </p>
+                <ul className="ml-4 space-y-2 list-disc">
+                  <li>Track your daily expenses and income</li>
+                  <li>Set and monitor monthly budgets</li>
+                  <li>Visualize spending patterns with charts and insights</li>
+                  <li>Export your data in multiple formats</li>
+                  <li>Dark mode support for comfortable viewing</li>
+                  <li>Secure local storage of your financial data</li>
+                </ul>
+                <p>
+                  Our mission is to empower you with the insights and tools needed to make informed financial decisions.
+                </p>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+              <h3 className="text-lg font-semibold">Contact & Support</h3>
+              <div className="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                <p>
+                  <span className="font-medium">Email:</span> mrsameer12082006@gmail.com
+                </p>
+                <p>
+                  <span className="font-medium">Feedback:</span> We'd love to hear from you! Send us your suggestions and feedback.
+                </p>
+              </div>
+            </article>
+          </div>
+        )}
+
         {/* Other Tabs - Coming Soon */}
-        {activeTab !== 'general' && (
+        {activeTab !== 'general' && activeTab !== 'profile' && activeTab !== 'data' && activeTab !== 'about' && (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-950">
             <h3 className="text-lg font-semibold">
               {tabs.find((t) => t.id === activeTab)?.label}

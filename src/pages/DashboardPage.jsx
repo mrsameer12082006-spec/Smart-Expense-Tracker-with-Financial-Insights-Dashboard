@@ -11,6 +11,7 @@ import { formatCurrency, formatDate } from '../utils/formatters'
 const DashboardPage = () => {
   const expenses = useSelector((state) => state.expenses.items)
   const monthlyBudget = useSelector((state) => state.settings.monthlyBudget)
+  const monthlyIncome = useSelector((state) => state.settings.monthlyIncome)
   const currency = useSelector((state) => state.settings.currency)
   const currentUser = useSelector((state) => state.auth.currentUser)
 
@@ -108,7 +109,7 @@ const DashboardPage = () => {
     )
   }
 
-  const totalIncome = Number(monthlyBudget)
+  const totalIncome = Number(monthlyIncome)
   const totalSavings = Math.max(0, budgetRemaining)
 
   const smartInsights = [

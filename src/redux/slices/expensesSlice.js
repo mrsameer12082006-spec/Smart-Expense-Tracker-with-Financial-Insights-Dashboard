@@ -24,9 +24,12 @@ const expensesSlice = createSlice({
     hydrateExpenses: (state, action) => {
       return { ...state, ...action.payload }
     },
+    clearExpenses: (state) => {
+      state.items = []
+    },
   },
 })
 
-export const { addExpense, updateExpense, deleteExpense, hydrateExpenses } =
+export const { addExpense, updateExpense, deleteExpense, hydrateExpenses, clearExpenses } =
   expensesSlice.actions
 export default expensesSlice.reducer
